@@ -124,4 +124,4 @@ def network_state_figure(
   yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
  )
  return fig
-```
+
