@@ -3,40 +3,52 @@ from __future__ import annotations
 from io import BytesIO
 import os
 import sys
+import traceback
 
 import pandas as pd
 import streamlit as st
 
 # ==============================================================================
-# АВТОМАТИЧНЕ НАЛАШТУВАННЯ ШЛЯХІВ ДЛЯ STREAMLIT CLOUD
+# 1) АВТОМАТИЧНЕ НАЛАШТУВАННЯ ШЛЯХІВ ТА БЕЗПЕЧНИЙ ІМПОРТ
 # ==============================================================================
-# Додаємо поточну папку та батьківську папку до шляхів пошуку модулів Python.
-# Це гарантує, що імпорт з папки 'src' спрацює як локально, так і на деплої.
-current_dir = os.path.dirname(os.path.abspath(__file__))
+current_file_path = os.path.abspath(__file__)
+current_dir = os.path.dirname(current_file_path)
 parent_dir = os.path.dirname(current_dir)
 
-if current_dir not in sys.path:
-    sys.path.append(current_dir)
-if parent_dir not in sys.path:
-    sys.path.append(parent_dir)
+# Додаємо робочі директорії до системного шляху Python
+for path in [current_dir, parent_dir]:
+    if path not in sys.path:
+        sys.path.append(path)
+
+src_path = os.path.join(current_dir, "src")
+if os.path.exists(src_path) and src_path not in sys.path:
+    sys.path.append(src_path)
+
+# Спроба імпортувати модулі з відловлюванням SyntaxError або ModuleNotFoundError
+try:
+    from src.cyber_sim import AttackSpreadSimulator, default_graph, graph_from_edges
+    from src.cyber_sim.io_utils import parse_uploaded_csv
+    from src.cyber_sim.visuals import network_state_figure, risk_bar_figure, timeline_figure
+except Exception as e:
+    st.error("🚨 Помилка ініціалізації модулів додатка!")
+    st.write("Streamlit Cloud не зміг завантажити файли симулятора через внутрішню помилку в коді:")
+    st.code(traceback.format_exc())
+    st.stop()
+
 # ==============================================================================
-
-# Тепер імпорти працюватимуть стабільно
-from src.cyber_sim import AttackSpreadSimulator, default_graph, graph_from_edges
-from src.cyber_sim.io_utils import parse_uploaded_csv
-from src.cyber_sim.visuals import network_state_figure, risk_bar_figure, timeline_figure
-
+# 2) КОНФІГУРАЦІЯ СТОРІНКИ ТА ІНТЕРФЕЙСУ
+# ==============================================================================
 st.set_page_config(
     page_title="Cyber Attack Spread Simulator",
     page_icon="🛡️",
     layout="wide",
 )
 
-st.title("Інтеракватне моделювання поширення кібератаки у мережі")
+st.title("Інтерактивне моделювання поширення кібератаки у мережі")
 st.caption("Навчальний веб-застосунок на базі Streamlit для SI/SIS/SIR-моделювання")
 
 with st.sidebar:
-    st.header("Параметри моделі")
+    st.header("Параметри模делі")
     model_name = st.selectbox("Модель", ["SI", "SIS", "SIR"], index=2)
     steps = st.slider("Кількість кроків симуляції", min_value=5, max_value=120, value=40)
     beta = st.slider("Ймовірність зараження β", min_value=0.0, max_value=1.0, value=0.35, step=0.01)
@@ -93,6 +105,9 @@ if not initial_infected:
 
 run_clicked = st.button("Запустити симуляцію", type="primary", use_container_width=True)
 
+# ==============================================================================
+# 3) ЗАПУСК СИМУЛЯЦІЇ ТА ВІЗУАЛІЗАЦІЯ
+# ==============================================================================
 if run_clicked:
     try:
         simulator = AttackSpreadSimulator(loaded_graph, seed=int(seed))
