@@ -6,4 +6,3 @@ __all__ = [
  "default_graph",
  "graph_from_edges",
 ]
-```
