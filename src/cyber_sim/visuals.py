@@ -1,4 +1,4 @@
-```python
+
 from __future__ import annotations
 
 from typing import Dict, List
@@ -125,4 +125,4 @@ def network_state_figure(
   yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
  )
  return fig
-```
+
