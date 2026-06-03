@@ -208,4 +208,4 @@ def default_graph() -> nx.Graph:
  g = nx.Graph()
  g.add_edges_from(edges)
  return g
-```
+
