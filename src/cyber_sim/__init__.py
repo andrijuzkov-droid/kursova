@@ -1,4 +1,4 @@
-```python
+
 from .model import AttackSpreadSimulator, SimulationResult, default_graph, graph_from_edges
 
 __all__ = [
@@ -7,4 +7,3 @@ __all__ = [
  "default_graph",
  "graph_from_edges",
 ]
-```
